@@ -248,13 +248,21 @@ import SwiftUI
                     playbackRateMenu
                 }
                 contentModeButton
-                if PlayerFavorites.supportsFavorites(media.contentRef) {
-                    favoriteButton
-                }
+                #if !os(macOS)
+                    if PlayerFavorites.supportsFavorites(media.contentRef) {
+                        favoriteButton
+                    }
+                #endif
                 PlayerSourcesButton(onResetHideTimer: onResetHideTimer)
                 PlayerQualityButton(onResetHideTimer: onResetHideTimer)
                 PlayerRecordButton(media: media, onResetHideTimer: onResetHideTimer)
                 PlayerVolumeControl(onResetHideTimer: onResetHideTimer)
+                #if os(macOS)
+                    PlayerFullScreenButton(onResetHideTimer: onResetHideTimer)
+                    if PlayerFavorites.supportsFavorites(media.contentRef) {
+                        favoriteButton
+                    }
+                #endif
             }
             .padding(.horizontal, 4)
             .glassEffectCompat(.regularInteractive, in: Capsule())
