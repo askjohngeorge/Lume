@@ -116,6 +116,9 @@ import SwiftUI
                 Spacer()
 
                 PlayerCastButton()
+                #if os(macOS)
+                    PlayerPinButton(onResetHideTimer: onResetHideTimer)
+                #endif
             }
             .padding(.horizontal, 20)
             .padding(.top, 12)

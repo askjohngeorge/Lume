@@ -40,6 +40,8 @@ import SwiftUI
         /// `NSApp.keyWindow` is the library window whenever the player is not
         /// frontmost, which is exactly when a retitle would rename the wrong one.
         private weak var window: NSWindow?
+        private var originalWindowLevel: NSWindow.Level?
+        private(set) var isFloating = false
 
         private init() {}
 
@@ -59,6 +61,7 @@ import SwiftUI
         }
 
         func playerDidClose() {
+            releaseFloatingWindow()
             launchMedia = nil
             activeMediaID = nil
             pendingMedia = nil
@@ -74,8 +77,29 @@ import SwiftUI
         }
 
         func adopt(_ window: NSWindow, title: String) {
-            self.window = window
+            if self.window !== window {
+                releaseFloatingWindow()
+                self.window = window
+            }
             window.title = title
+        }
+
+        /// Pin only the adopted player window, never whichever window has focus.
+        func toggleFloating() {
+            guard let window else { return }
+            if isFloating {
+                releaseFloatingWindow()
+            } else {
+                originalWindowLevel = window.level
+                window.level = .floating
+                isFloating = true
+            }
+        }
+
+        private func releaseFloatingWindow() {
+            if let originalWindowLevel { window?.level = originalWindowLevel }
+            originalWindowLevel = nil
+            isFloating = false
         }
     }
 
