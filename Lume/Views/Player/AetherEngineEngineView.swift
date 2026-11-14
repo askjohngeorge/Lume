@@ -157,6 +157,7 @@ import SwiftUI
                 urlRefresh?.cancel()
                 coordinator.tearDown()
             }
+            .playerPreventsDisplaySleep(isPlaying: coordinator.isPlaying && !loadFailed)
             .onChange(of: coordinator.isPlaying) { _, _ in
                 resetHideTimer()
             }

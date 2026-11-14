@@ -208,6 +208,7 @@ struct VLCPlayerEngineView: View {
             NowPlayingService.shared.detachTransport(owner: coordinator)
             coordinator.tearDown()
         }
+        .playerPreventsDisplaySleep(isPlaying: coordinator.isPlaying && !loadFailed)
         .onChange(of: coordinator.isPlaying) { _, _ in
             resetHideTimer()
         }
