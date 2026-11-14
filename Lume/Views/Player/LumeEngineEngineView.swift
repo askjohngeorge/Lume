@@ -205,6 +205,7 @@ struct LumeEngineEngineView: View {
             NowPlayingService.shared.detachTransport(owner: coordinator)
             coordinator.tearDown()
         }
+        .playerPreventsDisplaySleep(isPlaying: (coordinator.isPlaying || coordinator.isBuffering) && !loadFailed)
         .onChange(of: coordinator.isPlaying) { _, _ in
             resetHideTimer()
         }
