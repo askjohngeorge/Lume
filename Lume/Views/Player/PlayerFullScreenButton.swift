@@ -19,6 +19,9 @@
         }
 
         func toggle() {
+            // AppKit can refuse fullscreen transitions at a floating level.
+            // The pin owner restores its choice after the transition completes.
+            if window?.level == .floating { window?.level = .normal }
             window?.toggleFullScreen(nil)
         }
     }

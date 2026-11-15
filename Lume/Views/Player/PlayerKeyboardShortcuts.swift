@@ -189,6 +189,7 @@ extension View {
         private func toggleFullScreen() -> KeyPress.Result {
             #if os(macOS)
                 guard let window = NSApp.keyWindow else { return .ignored }
+                if window.level == .floating { window.level = .normal }
                 window.toggleFullScreen(nil)
                 return .handled
             #else

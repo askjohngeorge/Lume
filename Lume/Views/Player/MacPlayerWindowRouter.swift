@@ -42,6 +42,8 @@ import SwiftUI
         private weak var window: NSWindow?
         private var originalWindowLevel: NSWindow.Level?
         private(set) var isFloating = false
+        @ObservationIgnored private var floatingObservers: [NSObjectProtocol] = []
+        private var isTransitioningFullScreen = false
 
         private init() {}
 
@@ -61,6 +63,7 @@ import SwiftUI
         }
 
         func playerDidClose() {
+            stopObservingFloatingWindow()
             releaseFloatingWindow()
             launchMedia = nil
             activeMediaID = nil
@@ -78,8 +81,10 @@ import SwiftUI
 
         func adopt(_ window: NSWindow, title: String) {
             if self.window !== window {
+                stopObservingFloatingWindow()
                 releaseFloatingWindow()
                 self.window = window
+                observeFloatingWindow(window)
             }
             window.title = title
         }
@@ -91,9 +96,41 @@ import SwiftUI
                 releaseFloatingWindow()
             } else {
                 originalWindowLevel = window.level
-                window.level = .floating
                 isFloating = true
+                applyFloatingLevel()
             }
+        }
+
+        private func applyFloatingLevel() {
+            guard let window, isFloating else { return }
+            let fullScreen = isTransitioningFullScreen || window.styleMask.contains(.fullScreen)
+            window.level = fullScreen ? .normal : .floating
+        }
+
+        private func observeFloatingWindow(_ window: NSWindow) {
+            let center = NotificationCenter.default
+            for name in [NSWindow.willEnterFullScreenNotification, NSWindow.willExitFullScreenNotification] {
+                floatingObservers.append(center.addObserver(forName: name, object: window, queue: .main) { [weak self] _ in
+                    MainActor.assumeIsolated {
+                        self?.isTransitioningFullScreen = true
+                        self?.applyFloatingLevel()
+                    }
+                })
+            }
+            for name in [NSWindow.didEnterFullScreenNotification, NSWindow.didExitFullScreenNotification] {
+                floatingObservers.append(center.addObserver(forName: name, object: window, queue: .main) { [weak self] _ in
+                    MainActor.assumeIsolated {
+                        self?.isTransitioningFullScreen = false
+                        self?.applyFloatingLevel()
+                    }
+                })
+            }
+        }
+
+        private func stopObservingFloatingWindow() {
+            floatingObservers.forEach(NotificationCenter.default.removeObserver)
+            floatingObservers = []
+            isTransitioningFullScreen = false
         }
 
         private func releaseFloatingWindow() {
