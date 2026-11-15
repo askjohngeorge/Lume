@@ -269,6 +269,8 @@ import SwiftUI
                     // layout or focus change it makes is deferred.
                     Task { @MainActor in handleMove(direction) }
                 }
+            #elseif os(macOS)
+                PlayerVideoDragSurface(onClick: toggleControls)
             #else
                 Color.clear
                     .contentShape(Rectangle())

@@ -256,6 +256,8 @@ struct AVPlayerEngineView: View {
                     showControls()
                 }
             }
+        #elseif os(macOS)
+            PlayerVideoDragSurface(onClick: toggleControls)
         #else
             Color.clear
                 .contentShape(Rectangle())
