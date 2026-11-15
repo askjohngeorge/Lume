@@ -16,6 +16,18 @@ import SwiftUI
 
 #if !os(tvOS)
 
+    extension PlayerItemNavigation.Neighbours {
+        /// The Mac player keeps episode controls, but live channels are selected
+        /// from the library or keyboard rather than arrows over the video.
+        var showsOnScreenButtons: Bool {
+            #if os(macOS)
+                axis == .episode
+            #else
+                axis != nil
+            #endif
+        }
+    }
+
     /// One end of the transport pair. Two of these bracket the play/pause
     /// button; each renders only when the stream has an axis to move along —
     /// a standalone movie has neither episodes nor channels, and shows nothing.

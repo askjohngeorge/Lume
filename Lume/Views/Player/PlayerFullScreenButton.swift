@@ -40,7 +40,8 @@
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
+                    .contentShape(Circle())
+                    .glassEffectCompat(.regularInteractive, in: Circle())
             }
             .buttonStyle(.plain)
             .help(title)

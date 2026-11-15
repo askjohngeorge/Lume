@@ -85,6 +85,9 @@ import SwiftUI
                 .keyboardShortcut(.escape, modifiers: [])
 
                 pipButton
+                #if os(macOS)
+                    PlayerFullScreenButton(onResetHideTimer: onResetHideTimer)
+                #endif
 
                 Spacer()
 
@@ -126,7 +129,7 @@ import SwiftUI
 
         private func transportRow(spacing: CGFloat) -> some View {
             HStack(spacing: spacing) {
-                if itemNeighbours.axis != nil {
+                if itemNeighbours.showsOnScreenButtons {
                     PlayerItemNavButton(
                         step: .previous,
                         neighbours: itemNeighbours,
@@ -167,7 +170,7 @@ import SwiftUI
                     .accessibilityLabel("Skip forward 15 seconds")
                 }
 
-                if itemNeighbours.axis != nil {
+                if itemNeighbours.showsOnScreenButtons {
                     PlayerItemNavButton(
                         step: .next,
                         neighbours: itemNeighbours,
@@ -261,7 +264,6 @@ import SwiftUI
                 PlayerRecordButton(media: media, onResetHideTimer: onResetHideTimer)
                 PlayerVolumeControl(onResetHideTimer: onResetHideTimer)
                 #if os(macOS)
-                    PlayerFullScreenButton(onResetHideTimer: onResetHideTimer)
                     if PlayerFavorites.supportsFavorites(media.contentRef) {
                         favoriteButton
                     }
