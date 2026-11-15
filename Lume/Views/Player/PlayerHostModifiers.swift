@@ -21,6 +21,16 @@ import SwiftUI
 #endif
 
 extension View {
+    /// Leave room for the native macOS window buttons beside the player row.
+    @ViewBuilder
+    func macWindowButtonsInset() -> some View {
+        #if os(macOS)
+            padding(.leading, MacPlayerWindowRouter.shared.windowButtonsInset)
+        #else
+            self
+        #endif
+    }
+
     /// Runs `action` on the Siri remote's Menu/back press (tvOS only); a no-op
     /// elsewhere so the cross-platform body still compiles.
     @ViewBuilder
@@ -46,6 +56,14 @@ extension View {
 
 #if os(macOS)
     extension View {
+        /// Upstream behavior: native window buttons follow the player controls.
+        func macWindowButtonsFollow(_ isControlsVisible: Bool) -> some View {
+            onChange(of: isControlsVisible, initial: true) { _, visible in
+                MacPlayerWindowRouter.shared.setWindowButtonsVisible(visible)
+            }
+            .onDisappear { MacPlayerWindowRouter.shared.setWindowButtonsVisible(true) }
+        }
+
         /// Shows the controls while the pointer moves over the player and
         /// hides them `hideDelay` after it leaves.
         func playerHoverRevealsControls(
@@ -92,6 +110,7 @@ extension View {
                 }
                 .background(PlayerCursorVisibility(controlsVisible: isControlsVisible, pointerInside: isPointerInside))
                 .onDisappear { hoverHideTask?.cancel() }
+                .macWindowButtonsFollow(isControlsVisible)
         }
     }
 #endif

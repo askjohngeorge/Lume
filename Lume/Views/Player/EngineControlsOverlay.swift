@@ -142,6 +142,7 @@ import SwiftUI
             }
             .padding(.horizontal, 20)
             .padding(.top, 12)
+            .macWindowButtonsInset()
         }
 
         @ViewBuilder

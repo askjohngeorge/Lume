@@ -258,6 +258,7 @@ struct FullScreenPlayerView: View {
                 closeButton
                     .padding(.top, 4)
                     .padding(.leading, 4)
+                    .macWindowButtonsInset()
             }
         }
         #if os(iOS)

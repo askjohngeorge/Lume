@@ -44,6 +44,14 @@ import SwiftUI
         private(set) var isFloating = false
         @ObservationIgnored private var floatingObservers: [NSObjectProtocol] = []
         private var isTransitioningFullScreen = false
+        private(set) var isFullScreen = false
+        private var windowButtonsVisible = true
+        private var originalButtonVisibility: [NSWindow.ButtonType: Bool] = [:]
+
+        /// The native buttons occupy the leading corner only in a window.
+        var windowButtonsInset: CGFloat {
+            isFullScreen ? 0 : 56
+        }
 
         private init() {}
 
@@ -63,12 +71,15 @@ import SwiftUI
         }
 
         func playerDidClose() {
+            restoreWindowButtons()
             stopObservingFloatingWindow()
             releaseFloatingWindow()
             launchMedia = nil
             activeMediaID = nil
             pendingMedia = nil
             window = nil
+            isFullScreen = false
+            windowButtonsVisible = true
         }
 
         func noteActiveMedia(_ media: PlayableMedia) {
@@ -83,10 +94,38 @@ import SwiftUI
             if self.window !== window {
                 stopObservingFloatingWindow()
                 releaseFloatingWindow()
+                restoreWindowButtons()
                 self.window = window
+                isFullScreen = window.styleMask.contains(.fullScreen)
+                for kind in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {
+                    if let button = window.standardWindowButton(kind) {
+                        originalButtonVisibility[kind] = button.isHidden
+                    }
+                }
+                applyWindowButtonsVisibility()
                 observeFloatingWindow(window)
             }
             window.title = title
+        }
+
+        /// Mirrors upstream's macWindowButtonsFollow behavior on this window.
+        /// Remember the state even before the async window accessor resolves.
+        func setWindowButtonsVisible(_ visible: Bool) {
+            windowButtonsVisible = visible
+            applyWindowButtonsVisibility()
+        }
+
+        private func applyWindowButtonsVisibility() {
+            for (kind, originallyHidden) in originalButtonVisibility {
+                window?.standardWindowButton(kind)?.isHidden = originallyHidden || !windowButtonsVisible
+            }
+        }
+
+        private func restoreWindowButtons() {
+            for (kind, hidden) in originalButtonVisibility {
+                window?.standardWindowButton(kind)?.isHidden = hidden
+            }
+            originalButtonVisibility = [:]
         }
 
         /// Pin only the adopted player window, never whichever window has focus.
@@ -113,6 +152,7 @@ import SwiftUI
                 floatingObservers.append(center.addObserver(forName: name, object: window, queue: .main) { [weak self] _ in
                     MainActor.assumeIsolated {
                         self?.isTransitioningFullScreen = true
+                        self?.isFullScreen = name == NSWindow.willEnterFullScreenNotification
                         self?.applyFloatingLevel()
                     }
                 })
@@ -121,6 +161,7 @@ import SwiftUI
                 floatingObservers.append(center.addObserver(forName: name, object: window, queue: .main) { [weak self] _ in
                     MainActor.assumeIsolated {
                         self?.isTransitioningFullScreen = false
+                        self?.isFullScreen = name == NSWindow.didEnterFullScreenNotification
                         self?.applyFloatingLevel()
                     }
                 })
