@@ -83,7 +83,11 @@ import SwiftUI
                 VStack(spacing: 0) {
                     topBar
                     Spacer(minLength: 0)
-                    centerTransport
+                    #if os(macOS)
+                        if !media.isLive { centerTransport }
+                    #else
+                        centerTransport
+                    #endif
                     Spacer(minLength: 0)
                     bottomControls
                 }
@@ -189,15 +193,17 @@ import SwiftUI
                     .accessibilityLabel("Skip back 15 seconds")
                 }
 
-                Button(action: onTogglePlay) {
-                    circleGlyph(
-                        coordinator.isPlaying ? "pause.fill" : "play.fill",
-                        size: 30,
-                        diameter: 76
-                    )
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(coordinator.isPlaying ? "Pause" : "Play")
+                #if !os(macOS)
+                    Button(action: onTogglePlay) {
+                        circleGlyph(
+                            coordinator.isPlaying ? "pause.fill" : "play.fill",
+                            size: 30,
+                            diameter: 76
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(coordinator.isPlaying ? "Pause" : "Play")
+                #endif
 
                 if !media.isLive {
                     Button {
@@ -308,6 +314,13 @@ import SwiftUI
                 PlayerSourcesButton(onResetHideTimer: onResetHideTimer)
                 PlayerQualityButton(onResetHideTimer: onResetHideTimer)
                 PlayerRecordButton(media: media, onResetHideTimer: onResetHideTimer)
+                #if os(macOS)
+                    PlayerPlayPauseButton(
+                        isPlaying: coordinator.isPlaying,
+                        onTogglePlay: onTogglePlay,
+                        onResetHideTimer: onResetHideTimer
+                    )
+                #endif
                 PlayerVolumeControl(onResetHideTimer: onResetHideTimer)
                 #if os(macOS)
                     if PlayerFavorites.supportsFavorites(media.contentRef) {
