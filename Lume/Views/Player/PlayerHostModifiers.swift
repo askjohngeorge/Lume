@@ -66,18 +66,21 @@ extension View {
         let hideDelay: Duration
         var onActivity: () -> Void
         @State private var hoverHideTask: Task<Void, Never>?
+        @State private var isPointerInside = false
 
         func body(content: Content) -> some View {
             content
                 .onContinuousHover(coordinateSpace: .local) { phase in
                     switch phase {
                     case .active:
+                        isPointerInside = true
                         if !isControlsVisible {
                             withAnimation(.easeInOut(duration: 0.2)) { isControlsVisible = true }
                         }
                         onActivity()
                         hoverHideTask?.cancel()
                     case .ended:
+                        isPointerInside = false
                         hoverHideTask?.cancel()
                         let hideDelay = hideDelay
                         hoverHideTask = Task { @MainActor in
@@ -87,6 +90,7 @@ extension View {
                         }
                     }
                 }
+                .background(PlayerCursorVisibility(controlsVisible: isControlsVisible, pointerInside: isPointerInside))
                 .onDisappear { hoverHideTask?.cancel() }
         }
     }
