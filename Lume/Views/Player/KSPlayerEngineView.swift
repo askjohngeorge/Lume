@@ -476,6 +476,11 @@ struct KSPlayerEngineView: View {
                 // only video — this overlay renders those parts on screen.
                 KSSubtitleOverlay(subtitleModel: coordinator.subtitleModel)
 
+                #if os(macOS)
+                    PlayerVideoDragSurface(onClick: toggleControls)
+                        .ignoresSafeArea()
+                #endif
+
                 // Hold the controls back until the stream starts, so the loading
                 // indicator stands in for a player that would otherwise look
                 // paused behind its Play button.
@@ -535,9 +540,11 @@ struct KSPlayerEngineView: View {
                 // its decoder session — strongly for as long as it runs).
                 observePipState()
             }
+            #if !os(macOS)
             .onTapGesture {
                 toggleControls()
             }
+            #endif
             .onPreferenceChange(PlayerControlsBarHeightKey.self) { episodeOverlayLink.reportControlsBarHeight($0) }
             #if os(macOS)
                 .playerPreventsDisplaySleep(isPlaying: (isPlaying || isBuffering) && !loadFailed)
